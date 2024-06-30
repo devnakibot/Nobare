@@ -1,0 +1,93 @@
+version: "3.8"
+services:
+  mongodb:
+    container_name: lavamusic-mongodb
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongopassword
+    restart: on-failure
+    volumes:
+      - mongodb_data:/data/db
+
+  lavalink:
+    container_name: lavamusic-lavalink
+    image: fredboat/lavalink:dev
+    environment:
+      SERVER_PORT: 2333
+      SERVER_ADDRESS: 0.0.0.0
+      LAVALINK_SERVER_PASSWORD: "youshallnotpass"
+      LAVALINK_SERVER_SOURCES_YOUTUBE: 'true'
+      LAVALINK_SERVER_SOURCES_BANDCAMP: 'true'
+      LAVALINK_SERVER_SOURCES_SOUNDCLOUD: 'true'
+      LAVALINK_SERVER_SOURCES_TWITCH: 'true'
+      LAVALINK_SERVER_SOURCES_VIMEO: 'true'
+      LAVALINK_SERVER_SOURCES_HTTP: 'true'
+      LAVALINK_SERVER_SOURCES_LOCAL: 'true'
+      LAVALINK_SERVER_BUFFER_DURATION_MS: 400
+      LAVALINK_SERVER_FRAME_BUFFER_DURATIONS_MS: 5000
+      LAVALINK_SERVER_TRACK_STRUCK_THRESHOLD_MS: 10000
+      LAVALINK_SERVER_YOUTUBE_PLAYLIST_LOAD_LIMIT: 6
+      LAVALINK_SERVER_PLAYER_UPDATE_INTERVAL: 5
+      LAVALINK_SERVER_YOUTUBE_SEARCH_ENABLED: 'true'
+      LAVALINK_SERVER_SOUNDCLOUD_SEARCH_ENABLED: 'true'
+      #LAVALINK_SERVER_YOUTUBE_CONFIG_EMAIL:
+      #LAVALINK_SERVER_YOUTUBE_CONFIG_PASSWORD:
+      LAVALINK_SERVER_SENTRY_DSN: ""
+    restart: on-failure
+
+  lavalink-monitor:
+    container_name: Lavalink-Monitor
+    image: ghcr.io/brblacky/lavalink-status:latest
+    environment:
+      CHANNEL_ID: "channel id to post stats in"
+      TOKEN: "your lavalink server status bot token"
+      NODE_HOST: "lavalink"
+      NODE_ID: "lavamusic-lavalink"
+      NODE_PORT: "2333"
+      NODE_PASSWORD: "youshallnotpass"
+      NODE_SECURE: "false"
+    restart: on-failure
+    depends_on:
+      - lavalink
+    links:
+      - lavalink
+
+  lavamusic:
+    container_name: lavamusic
+    image: ghcr.io/brblacky/lavamusic:latest
+    environment:
+      TOKEN: ""
+      PREFIX: "n"
+      OWNER_ID: "1137665463766237244"
+      CLIENT_ID: "1256406536771862640"
+      SPOTIFY_ID: "ee75ebb0cf824e57b069207b792d2b5f"
+      SPOTIFY_SECRET: "8d6855c3b1a0476285954182cc853d7e"
+      MONGO_URL: "mongodb+srv://vudinhbin07:nobare@nobare.zh5348f.mongodb.net/?retryWrites=true&w=majority&appName=nobare"
+      EMBED_COLOR: "#ee88aa"
+      LOGS: "1256410589341683813"
+      ERROR_LOGS_CHANNEL: "1256410589341683813"
+      IMG: "setup system background image"
+      SUPPORT: "support server invite link"
+      INVITE: "bot invite link"
+      NODE_HOST: "lavalink"
+      NODE_ID: "lavamusic-lavalink"
+      NODE_PORT: "2333"
+      NODE_PASSWORD: "youshallnotpass"
+      NODE_SECURE: "false"
+      SEARCH_PLATFORM: "youtube music"
+      AGGREGATED_SEARCH_ORDER: "youtube music,youtube,soundcloud"
+    restart: on-failure
+    depends_on:
+      - lavalink
+      - mongodb
+    links:
+      - mongodb:db
+      - lavalink
+
+volumes:
+  mongodb_data:
+
+networks:
+  default:
+    name: net-lavamusic
